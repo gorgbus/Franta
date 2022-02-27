@@ -1,0 +1,22 @@
+{
+    "test_string": "Test command works!",
+
+    "cmd_no_permissions": "Nemáš povolení k použití tohoto příkazu.\nPotřebné povolení: R$permissions",
+
+    "cmd_mute_no_args": "Nezadal jsi žádné argumenty.\nPříklad: /$[@user | user-id] <cas> <duvod>/$",
+    "cmd_mute_no_member": "Uživatel nebyl nalezen.",
+
+    "cmd_settings_not_included": "Zadal jsi špatné/neexistující nastavení.\nDostupné nastavení: R$settings",
+    "cmd_settings_changed": "R$id byl změněn na R$value.",
+    "cmd_settings_not_allowed": "R$value neexistuje.\nDostupné možnosti: R$allowed",
+    "cmd_settings_already": "R$id už je nastavené na R$value.",
+    "cmd_settings_current": "R$id je nastavené na R$value.",
+
+    "cmd_role_added": "**+** Mr$id",
+    "cmd_role_removed": "**-** Mr$id",
+    "cmd_role_choose_channel": "Vyber kanál:",
+    "cmd_role_invalid_channel": "Tento kanál není validní",
+    "cmd_role_valid_channel": "Mc$id byl nastaven jako místo odeslání výběru rolí\nNapiš krátky popis k výběru:",
+    "cmd_role_preview": "Náhled:",
+    "cmd_role_await_roles": "Zadej role které chceš dát do výběru:\nNapř: \u0060id role\u0060 - \u0060popis\u0060 nebo Mr$id - \u0060popis\u0060"
+}
