@@ -45,7 +45,7 @@ module.exports = class RoleReactCommand extends BaseCommand {
                             }
                             break;
                         case 2:
-                            const _args2 = m.content.split(" - ")
+                            const _args2 = m.content.split(" | ")
 
                             if (_args2.length > 1) {
                                 let reg = /^#([0-9a-f]{3}){1,2}$/i;
@@ -174,7 +174,7 @@ module.exports = class RoleReactCommand extends BaseCommand {
             str = localizeString(lang, "cmd_role_preview")
 
             embed = new MessageEmbed()
-                .setTitle('**' + desc + '**')
+                .setDescription(desc)
                 .setColor(color)
             
             message.channel.send({ embeds: [embed], content: str }).then(m => {
