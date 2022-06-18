@@ -1,4 +1,5 @@
-*.env
-node_modules/
-slappey.json
-.idea/workspace.xml
+.env
+/node_modules/
+/build/
+application.yml
+lavalink.jar
