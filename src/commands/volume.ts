@@ -6,7 +6,7 @@ export default {
     data: new SlashCommandBuilder()
         .setName('volume')
         .setDescription('Volume command')
-        .addStringOption(opt => 
+        .addIntegerOption(opt => 
             opt
                 .setName('hlasitost')
                 .setDescription('nastav hlasitost')
@@ -25,9 +25,9 @@ export default {
 
         if (player.voiceChannel !== interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být ve stejném hlasovém kanálu', ephemeral: true });
 
-        const volume = interaction.options.getString('hlasitost');
+        const volume = interaction.options.getInteger('hlasitost');
 
-        player.setVolume(Number(volume));
+        player.setVolume(volume!);
 
         interaction.reply(`hlasitost byla nastavena na ${volume}%`);
     }
