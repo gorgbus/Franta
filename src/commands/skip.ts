@@ -14,7 +14,7 @@ export default {
 
         const player = client.manager.players.get(interaction.guildId);
 
-        if (!player || !player.queue.size) return interaction.reply({ content: 'nic nehraje', ephemeral: true });
+        if (!player || !player.queue.current) return interaction.reply({ content: 'nic nehraje', ephemeral: true });
 
         if (player.voiceChannel !== interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být ve stejném hlasovém kanálu', ephemeral: true });
 

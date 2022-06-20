@@ -29,7 +29,7 @@ export interface IClient extends Client {
     client.manager = new Manager({
         nodes: [
             {
-                host: 'localhost',
+                host: process.env.LAVA_IP!,
                 port: 6900,
                 password: process.env.LAVALINK
             }
