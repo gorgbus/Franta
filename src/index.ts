@@ -111,5 +111,13 @@ export interface IClient extends Client {
         }
     });
 
+    client.on('voiceStateUpdate', (oldState, newState) => {
+        if (oldState.channelId && !newState.channelId) {
+            const player = client.manager.players.get(newState.guild.id);
+
+            if (player) player.destroy();
+        }
+    });
+
     client.on('raw', (d) => client.manager.updateVoiceState(d));
 })();
