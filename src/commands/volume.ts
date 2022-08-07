@@ -1,34 +1,34 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
-import { IClient } from "..";
+import { ApplicationCommandStructure, CommandInteraction, Constants } from "eris";
+import { EClient } from "../types";
+import { checkPlayerAndVoice } from "../util";
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName('volume')
-        .setDescription('Volume command')
-        .addIntegerOption(opt => 
-            opt
-                .setName('hlasitost')
-                .setDescription('nastav hlasitost')
-                .setRequired(true)
-        )    
-    ,
+export const command: ApplicationCommandStructure = {
+    name: 'volume',
+    description: 'nastavní hlasitost bota',
+    type: 1,
+    options: [
+        {
+            name: 'percents',
+            description: 'hlasitost',
+            required: true,
+            min_value: 0,
+            type: 4
+        }
+    ]
+}
+
+export const execute = async (client: EClient, interaction: CommandInteraction) => {
+    const player = checkPlayerAndVoice(interaction, client);
     
-    execute: async (interaction: CommandInteraction, client: IClient) => {
-        if (!interaction.inCachedGuild()) return;
+    if (!player) return;
 
-        if (!interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být v hlasovém kanálu', ephemeral: true });
+    const options = interaction.data.options;
 
-        const player = client.manager.players.get(interaction.guildId);
+    if (!options) throw new Error('něco se nepovedlo');
+   
+    const volume = options[0].value as number;
 
-        if (!player) return interaction.reply({ content: 'nic nehraje', ephemeral: true });
+    player.setVolume(volume);
 
-        if (player.voiceChannel !== interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být ve stejném hlasovém kanálu', ephemeral: true });
-
-        const volume = interaction.options.getInteger('hlasitost');
-
-        player.setVolume(volume!);
-
-        interaction.reply(`hlasitost byla nastavena na ${volume}%`);
-    }
+    interaction.createMessage(`hlasitost byla nastavena na ${volume}%`);
 }

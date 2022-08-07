@@ -1,25 +1,33 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
-import { IClient } from "..";
+import { ApplicationCommandStructure, CommandInteraction } from "eris";
+import { EClient } from "../types";
+import { checkPlayerAndVoice } from "../util";
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName('pause')
-        .setDescription('Pause command'),
+export const command: ApplicationCommandStructure = {
+    name: 'pause',
+    description: 'pozastaví bota',
+    type: 1,
+    options: [
+        {
+            name: 'paused',
+            description: 'pozastaví/spustí bota',
+            required: true,
+            type: 5
+        }
+    ]
+}
+
+export const execute = async (client: EClient, interaction: CommandInteraction) => {
+    const player = checkPlayerAndVoice(interaction, client);
     
-    execute: async (interaction: CommandInteraction, client: IClient) => {
-        if (!interaction.inCachedGuild()) return;
+    if (!player) return;
 
-        if (!interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být v hlasovém kanálu', ephemeral: true });
+    const options = interaction.data.options;
 
-        const player = client.manager.players.get(interaction.guildId);
+    if (!options) throw new Error('něco se nepovedlo');
 
-        if (!player) return interaction.reply({ content: 'nic nehraje', ephemeral: true });
+    const paused = options[0].value as boolean;
 
-        if (player.voiceChannel !== interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být ve stejném hlasovém kanálu', ephemeral: true });
+    player.pause(paused);
 
-        player.pause(true);
-
-        interaction.reply({ content: 'Přehrávání bylo pozastaveno, použij `/continue` pro pokračování v přehrávání', ephemeral: true });
-    }
+    interaction.createMessage(`<@${client.user.id}> byl ${paused ? 'pozastaven' : 'znovu spuštěn'}`);
 }

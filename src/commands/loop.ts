@@ -1,64 +1,63 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
-import { IClient } from "..";
+import { ApplicationCommandStructure, CommandInteraction, Constants, InteractionDataOptions } from "eris";
+import { EClient } from "../types";
+import { checkPlayerAndVoice } from "../util";
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName('loop')
-        .setDescription('Loop command')
-        .addSubcommand(sub => (
-            sub
-                .setName('song')
-                .setDescription('song který teď hraje se bude přehrávat dokola')
-                .addBooleanOption(opt => (
-                    opt
-                        .setName('dokola')
-                        .setDescription('vypni/zapni loop')
-                        .setRequired(true)
-                ))
-        ))
-        .addSubcommand(sub => (
-            sub
-                .setName('fronta')
-                .setDescription('bude přehrávat celou frontu dokola')
-                .addBooleanOption(opt => (
-                    opt
-                        .setName('dokola')
-                        .setDescription('vypni/zapni loop')
-                        .setRequired(true)
-                ))
-        ))
-    ,
+export const command: ApplicationCommandStructure = {
+    name: 'loop',
+    description: 'loopne song, který teď hraje nebo celou frontu',
+    type: 1,
+    options: [
+        {
+            name: 'song',
+            description: 'loopne song, který teď hraje',
+            type: 1,
+            options: [
+                {
+                    name: 'looped',
+                    description: 'vypni/zapni loop',
+                    required: true,
+                    type: 5
+                }
+            ]
+        },
+        {
+            name: 'queue',
+            description: 'loopne celou frontu',
+            type: 1,
+            options: [
+                {
+                    name: 'looped',
+                    description: 'vypni/zapni loop',
+                    required: true,
+                    type: 5
+                }
+            ]
+        }
+    ]
+}
+
+export const execute = async (client: EClient, interaction: CommandInteraction) => {
+    const player = checkPlayerAndVoice(interaction, client);
     
-    execute: async (interaction: CommandInteraction, client: IClient) => {
-        if (!interaction.inCachedGuild()) return;
+    if (!player) return;
 
-        if (!interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být v hlasovém kanálu', ephemeral: true });
+    const command = interaction.data.options as subcommand[];
 
-        const player = client.manager.players.get(interaction.guildId);
+    if (!command) throw new Error('něco se nepovedlo');
 
-        if (!player) return interaction.reply({ content: 'nic nehraje', ephemeral: true });
+    const loop = command[0].options[0].value as boolean;
 
-        if (player.voiceChannel !== interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být ve stejném hlasovém kanálu', ephemeral: true });
+    if (command[0].name === 'song')
+        player.setTrackRepeat(loop);
+    else
+        player.setQueueRepeat(loop);
 
-        const loop = interaction.options.getBoolean('dokola');
+    if (loop)
+        interaction.createMessage(`${command[0].name === 'song' ? player.queue.current?.title: 'celá fronta'} se teď přehrává dokola`);
+    else
+        interaction.createMessage('loop byl zrušen');
+}
 
-        if (interaction.options.getSubcommand() === 'song') {
-            player.setTrackRepeat(loop!);
-
-            if (loop) {
-                return interaction.reply(`${player.queue.current?.title} se teď přehrává dokola`)
-            } else {
-                return interaction.reply(`loop byl zrušen`);
-            }
-        } else {
-            player.setQueueRepeat(loop!)
-
-            if (loop) {
-                return interaction.reply(`fronta se teď přehrává dokola`)
-            } else {
-                return interaction.reply(`loop byl zrušen`);
-            }
-        };
-    }
+type subcommand = InteractionDataOptions & {
+    options: InteractionDataOptions[];
 }

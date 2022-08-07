@@ -1,25 +1,19 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
-import { IClient } from "..";
+import { ApplicationCommandStructure, CommandInteraction } from "eris";
+import { EClient } from "../types";
+import { checkPlayer, checkPlayerAndVoice } from "../util";
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName('dc')
-        .setDescription('Disconnect command'),
+export const command: ApplicationCommandStructure = {
+    name: 'dc',
+    description: 'odpojí bota z roomky',
+    type: 1
+}
+
+export const execute = async (client: EClient, interaction: CommandInteraction) => {
+    const player = checkPlayerAndVoice(interaction, client);
     
-    execute: async (interaction: CommandInteraction, client: IClient) => {
-        if (!interaction.inCachedGuild()) return;
+    if (!player) return;
 
-        if (!interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být v hlasovém kanálu', ephemeral: true });
+    player.destroy();
 
-        const player = client.manager.players.get(interaction.guildId);
-
-        if (!player) return interaction.reply({ content: 'nic nehraje', ephemeral: true });
-
-        if (player.voiceChannel !== interaction.member.voice.channelId) return interaction.reply({ content: 'musíš být ve stejném hlasovém kanálu', ephemeral: true });
-
-        player.destroy();
-
-        interaction.reply('posrar sesm se');
-    }
+    interaction.createMessage('posrar sesm se');
 }

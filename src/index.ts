@@ -1,123 +1,108 @@
-import { Client, Collection } from 'discord.js';
-import { Manager } from 'erela.js';
-import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v9';
+import Eris, { ApplicationCommandStructure, CommandInteraction } from "eris";
+import { Manager } from "erela.js";
+import { config } from "dotenv";
 import fs from 'fs';
 import path from 'path';
-import { config } from 'dotenv';
+import { commandCallback, EClient } from "./types";
 config();
 
-export interface IClient extends Client {
-    commands: Collection<string, any>;
-    manager: Manager;
-}
+const client = new Eris.Client(process.env.TOKEN!, {
+    intents: 33427,
+}) as EClient;
 
-(async () => {
-    const client = new Client({
-        presence: {
-            activities: [
-                {
-                    name: 'big mad balls in ur mouth',
-                    type: 'LISTENING',
-                }
-            ]
-        },
-        intents: ['GUILDS', 'GUILD_INTEGRATIONS', 'GUILD_VOICE_STATES']
-    }) as IClient;
-
-    client.commands = new Collection();
-    client.manager = new Manager({
-        nodes: [
-            {
-                host: process.env.LAVA_IP!,
-                port: 6900,
-                password: process.env.LAVALINK
-            }
-        ],
-        send(id, payload) {
-            const guild = client.guilds.cache.get(id);
-            if (guild) guild.shard.send(payload);
+client.manager = new Manager({
+    nodes: [
+        {
+            host: process.env.LAVA_IP!,
+            port: 6900,
+            password: process.env.LAVALINK
         }
-    })
-        .on('nodeConnect', (node) => console.log(`Node ${node.options.identifier} connected`));
+    ],
+    send(id, paylod) {
+        const guild = client.guilds.get(id);
 
+        if (guild) guild.shard.sendWS(paylod.op, paylod.d);
+    }
+})
+    .on('nodeConnect', (node) => {
+        console.log(`Node ${node.options.identifier} connected`);
+    })
+    .on('playerMove', (player, old, channel) => {
+        if (!channel) return player.destroy();
+
+        player.setVoiceChannel(channel);
+
+        if (player.paused) return;
+
+        const ping = client.guilds.get(player.guild)?.shard.latency
+
+        if (!ping) return;
+
+        setTimeout(() => {
+            player.pause(true);
+            setTimeout(() => player.pause(false), ping * 2);
+        }, ping * 2);
+    });
+
+client.on('ready', () => {
+    console.log(`${client.user.username} has logged in!`);
+    client.manager.init(client.user.id);
+
+    updateCommands();
+});
+
+client.on('interactionCreate', async (interaction) => {
+    if (interaction instanceof CommandInteraction) {
+        const command = client.commands.get(interaction.data.name);
+
+        if (!command) return;
+
+        try {
+            await command(client, interaction);
+        } catch(err) {
+            console.error(err);
+
+            interaction.createMessage({ content: 'Objevil se error při spouštění tohoto příkazu', flags: 64 });
+        }
+    }
+});
+
+client.on('guildCreate', (guild) => {
+    updateGuildCommands(guild.id);
+});
+
+client.on('rawWS', (packet: any) => {
+    client.manager.updateVoiceState(packet);
+});
+
+client.connect();
+
+const updateGuildCommands = (guild: string) => {
     const commandsPath = path.join(__dirname, 'commands');
     const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
 
-    const commands: any = [];
-
-    commandFiles.map((file) => {
+    commandFiles.map(async (file) => {
         const filePath = path.join(commandsPath, file);
-        const command = require(filePath);
+        const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
 
-        client.commands.set(command.default.data.name, command.default);
-        commands.push(command.default.data.toJSON());
+        client.commands.set(command.name, execute);
+        client.createGuildCommand(guild, command);
     });
+}
 
-    const rest = new REST({ version: '9' }).setToken(process.env.TOKEN!);
+const updateCommands = () => {
+    const commandsPath = path.join(__dirname, 'commands');
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
 
-    await client.login(process.env.TOKEN);
+    client.commands = new Map();
 
-    client.on('ready', () => {
-        console.log(`${client.user?.tag} has loggen in!`);
+    client.guilds.map(guild => {
+        commandFiles.map(async (file) => {
+            const filePath = path.join(commandsPath, file);
+            const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
 
-        client.manager.init(client.user?.id);
-    });
-
-    try {
-        console.log('Started refreshing application (/) commands.');
-
-        await rest.put(
-            Routes.applicationCommands(process.env.APP_ID!),
-            { body: commands }
-        )
-    } catch (err) {
-        console.error(err);
-    }
-
-    client.on('interactionCreate', async (interaction) => {
-        if (interaction.isCommand()) {
-            const command = client.commands.get(interaction.commandName);
-
-            if (!command) return;
-
-            try {
-                await command.execute(interaction, client);
-            } catch (err) {
-                console.error(err);
-                await interaction.reply({ content: 'Objevil se error při spouštění tohoto příkazu!', ephemeral: true });
-            }
-        }
-
-        if (interaction.isButton()) {
-            if (!interaction.inCachedGuild()) return;
-
-            const message = interaction.message
-
-            if (message.author.id === client.user?.id) {
-                const member = interaction.member
-                const role_id = interaction.customId.split("-")[1]
-                
-                if (member?.roles.cache.some(role => role.id === role_id)) {
-                    member.roles.remove(role_id)
-
-                    await interaction.reply({ content: `**-** <@&${role_id}>`, ephemeral: true })
-                } else {
-                    member?.roles.add(role_id)
-
-                    await interaction.reply({ content: `**+** <@&${role_id}>`, ephemeral: true })
-                }
-            }
-        }
-    });
-
-    client.on('voiceStateUpdate', (oldState, newState) => {
-        if (oldState.channelId && !newState.channelId) {
-            const player = client.manager.players.get(newState.guild.id);
-
-            if (player) player.destroy();
-        }
-    });
-
-    client.on('raw', (d) => client.manager.updateVoiceState(d));
-})();
+            client.commands.set(command.name, execute);
+            client.createGuildCommand(guild.id, command);
+        });
+    })
+}
