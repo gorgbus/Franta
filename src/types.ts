@@ -7,3 +7,7 @@ export interface EClient extends Client {
     manager: Manager;
     commands: Map<string, commandCallback>;
 }
+
+export type subcommand = InteractionDataOptions & {
+    options: InteractionDataOptions[];
+}

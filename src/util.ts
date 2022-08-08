@@ -113,7 +113,12 @@ export const updateCommands = (client: EClient) => {
             comandNames.push(command.name);
 
             client.commands.set(command.name, execute);
-            client.createGuildCommand(guild.id, command);
+            const savedCommand = commands.find(cmd => cmd.name === command.name);
+
+            if (savedCommand)
+                client.editGuildCommand(guild.id, savedCommand.id, command);
+            else
+                client.createGuildCommand(guild.id, command);
         }
 
         commands.filter(command => !comandNames.includes(command.name)).map(command => {

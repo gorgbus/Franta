@@ -1,9 +1,8 @@
-import Eris, { CommandInteraction } from "eris";
+import Eris from "eris";
 import discordEvent from "./handlers/discordEvent";
 import { Manager } from "erela.js";
 import { config } from "dotenv";
 import { EClient } from "./types";
-import { updateCommands, updateGuildCommands } from "./util";
 import erelaEvent from "./handlers/erelaEvent";
 config();
 

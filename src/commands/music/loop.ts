@@ -1,5 +1,5 @@
 import { ApplicationCommandStructure, CommandInteraction, Constants, InteractionDataOptions } from "eris";
-import { EClient } from "../../types";
+import { EClient, subcommand } from "../../types";
 import { checkPlayerAndVoice } from "../../util";
 
 export const command: ApplicationCommandStructure = {
@@ -56,8 +56,4 @@ export const execute = async (client: EClient, interaction: CommandInteraction) 
         interaction.createMessage(`${command[0].name === 'song' ? player.queue.current?.title: 'celá fronta'} se teď přehrává dokola`);
     else
         interaction.createMessage('loop byl zrušen');
-}
-
-type subcommand = InteractionDataOptions & {
-    options: InteractionDataOptions[];
 }
