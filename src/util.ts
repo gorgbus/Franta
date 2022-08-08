@@ -102,7 +102,7 @@ export const updateCommands = (client: EClient) => {
 
     client.guilds.map(async (guild) => {
         const commands = await client.getGuildCommands(guild.id);
-        const comandNames: string[] = [];
+        const comandIds: string[] = [];
 
         for (let file in commandFiles) {
             file = commandFiles[file];
@@ -110,18 +110,21 @@ export const updateCommands = (client: EClient) => {
             const filePath = path.join(commandsPath, file);
             const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
 
-            comandNames.push(command.name);
-
             client.commands.set(command.name, execute);
             const savedCommand = commands.find(cmd => cmd.name === command.name);
 
-            if (savedCommand)
-                client.editGuildCommand(guild.id, savedCommand.id, command);
-            else
-                client.createGuildCommand(guild.id, command);
+            if (savedCommand) {
+                const updatedCmd = await client.editGuildCommand(guild.id, savedCommand.id, command);
+                
+                comandIds.push(updatedCmd.id);
+            } else {
+                const newCmd = await client.createGuildCommand(guild.id, command);
+
+                comandIds.push(newCmd.id);
+            }
         }
 
-        commands.filter(command => !comandNames.includes(command.name)).map(command => {
+        commands.filter(command => !comandIds.includes(command.id)).map(command => {
             client.deleteGuildCommand(guild.id, command.id);
         });
     })
