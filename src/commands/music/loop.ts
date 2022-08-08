@@ -1,6 +1,6 @@
 import { ApplicationCommandStructure, CommandInteraction, Constants, InteractionDataOptions } from "eris";
-import { EClient } from "../types";
-import { checkPlayerAndVoice } from "../util";
+import { EClient } from "../../types";
+import { checkPlayerAndVoice } from "../../util";
 
 export const command: ApplicationCommandStructure = {
     name: 'loop',

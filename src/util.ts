@@ -1,6 +1,8 @@
 import { Player } from "erela.js";
-import { CommandInteraction } from "eris";
-import { EClient } from "./types";
+import { ApplicationCommandStructure, CommandInteraction } from "eris";
+import fs from 'fs';
+import path from 'path';
+import { commandCallback, EClient } from "./types";
 
 export const formatTime = (s: number) => {
     let seconds = Math.floor(s / 1000) % 60,
@@ -58,4 +60,64 @@ export const checkPlayerAndVoice = (intercation: CommandInteraction, client: ECl
     if (!channel) return false;
 
     return player;
+}
+
+const getCommandFiles = () => {
+    const commandsPath = path.join(__dirname, 'commands');
+    const allFiles = fs.readdirSync(commandsPath);
+
+    let commandFiles = allFiles.filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+    const commandDirs = allFiles.filter(file => fs.statSync(path.join(commandsPath, file)).isDirectory());
+
+    for (let commandDir in commandDirs) {
+        commandDir = commandDirs[commandDir];
+
+        const commandDirPath = path.join(commandsPath, commandDir);
+
+        const commands = fs.readdirSync(commandDirPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+        commandFiles = [...commandFiles, ...commands.map(command => `${commandDir}/${command}`)];
+    }
+
+    return commandFiles;
+}
+
+export const updateGuildCommands = (client: EClient, guild: string) => {
+    const commandsPath = path.join(__dirname, 'commands');
+    const commandFiles = getCommandFiles();
+
+    commandFiles.map(async (file) => {
+        const filePath = path.join(commandsPath, file);
+        const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
+
+        client.commands.set(command.name, execute);
+        client.createGuildCommand(guild, command);
+    });
+}
+
+export const updateCommands = (client: EClient) => {
+    const commandsPath = path.join(__dirname, 'commands');
+    const commandFiles = getCommandFiles();
+
+    client.commands = new Map();
+
+    client.guilds.map(async (guild) => {
+        const commands = await client.getGuildCommands(guild.id);
+        const comandNames: string[] = [];
+
+        for (let file in commandFiles) {
+            file = commandFiles[file];
+
+            const filePath = path.join(commandsPath, file);
+            const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
+
+            comandNames.push(command.name);
+
+            client.commands.set(command.name, execute);
+            client.createGuildCommand(guild.id, command);
+        }
+
+        commands.filter(command => !comandNames.includes(command.name)).map(command => {
+            client.deleteGuildCommand(guild.id, command.id);
+        });
+    })
 }

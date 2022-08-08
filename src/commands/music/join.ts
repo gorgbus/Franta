@@ -1,6 +1,6 @@
 import { ApplicationCommandStructure, CommandInteraction } from "eris";
-import { EClient } from "../types";
-import { checkVoice } from "../util";
+import { EClient } from "../../types";
+import { checkVoice } from "../../util";
 
 export const command: ApplicationCommandStructure = {
     name: 'join',

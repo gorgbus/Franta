@@ -1,6 +1,6 @@
 import { ApplicationCommandStructure, CommandInteraction, Constants, Embed, InteractionDataOptions } from "eris";
-import { EClient } from "../types";
-import { checkVoice, formatTime } from "../util";
+import { EClient } from "../../types";
+import { checkVoice, formatTime } from "../../util";
 
 export const command: ApplicationCommandStructure = {
     name: 'play',

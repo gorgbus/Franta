@@ -1,9 +1,10 @@
-import Eris, { ApplicationCommandStructure, CommandInteraction } from "eris";
+import Eris, { CommandInteraction } from "eris";
+import discordEvent from "./handlers/discordEvent";
 import { Manager } from "erela.js";
 import { config } from "dotenv";
-import fs from 'fs';
-import path from 'path';
-import { commandCallback, EClient } from "./types";
+import { EClient } from "./types";
+import { updateCommands, updateGuildCommands } from "./util";
+import erelaEvent from "./handlers/erelaEvent";
 config();
 
 const client = new Eris.Client(process.env.TOKEN!, {
@@ -23,53 +24,10 @@ client.manager = new Manager({
 
         if (guild) guild.shard.sendWS(paylod.op, paylod.d);
     }
-})
-    .on('nodeConnect', (node) => {
-        console.log(`Node ${node.options.identifier} connected`);
-    })
-    .on('playerMove', (player, old, channel) => {
-        if (!channel) return player.destroy();
-
-        player.setVoiceChannel(channel);
-
-        if (player.paused) return;
-
-        const ping = client.guilds.get(player.guild)?.shard.latency
-
-        if (!ping) return;
-
-        setTimeout(() => {
-            player.pause(true);
-            setTimeout(() => player.pause(false), ping * 2);
-        }, ping * 2);
-    });
-
-client.on('ready', () => {
-    console.log(`${client.user.username} has logged in!`);
-    client.manager.init(client.user.id);
-
-    updateCommands();
 });
 
-client.on('interactionCreate', async (interaction) => {
-    if (interaction instanceof CommandInteraction) {
-        const command = client.commands.get(interaction.data.name);
-
-        if (!command) return;
-
-        try {
-            await command(client, interaction);
-        } catch(err) {
-            console.error(err);
-
-            interaction.createMessage({ content: 'Objevil se error při spouštění tohoto příkazu', flags: 64 });
-        }
-    }
-});
-
-client.on('guildCreate', (guild) => {
-    updateGuildCommands(guild.id);
-});
+discordEvent(client);
+erelaEvent(client.manager, client);
 
 client.on('rawWS', (packet: any) => {
     client.manager.updateVoiceState(packet);
@@ -77,32 +35,3 @@ client.on('rawWS', (packet: any) => {
 
 client.connect();
 
-const updateGuildCommands = (guild: string) => {
-    const commandsPath = path.join(__dirname, 'commands');
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
-
-    commandFiles.map(async (file) => {
-        const filePath = path.join(commandsPath, file);
-        const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
-
-        client.commands.set(command.name, execute);
-        client.createGuildCommand(guild, command);
-    });
-}
-
-const updateCommands = () => {
-    const commandsPath = path.join(__dirname, 'commands');
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
-
-    client.commands = new Map();
-
-    client.guilds.map(guild => {
-        commandFiles.map(async (file) => {
-            const filePath = path.join(commandsPath, file);
-            const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
-
-            client.commands.set(command.name, execute);
-            client.createGuildCommand(guild.id, command);
-        });
-    })
-}
