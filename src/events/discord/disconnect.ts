@@ -4,5 +4,14 @@ export const event = {
 }
 
 export const execute = () => {
-    console.log(`Disconnected at ${new Date()}`);
+    const timezone = new Intl.DateTimeFormat('cs', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h24'
+    });
+
+    console.log(`Disconnected at ${timezone.format(new Date())}`);
 }
