@@ -3,6 +3,6 @@ export const event = {
     name: 'error'
 }
 
-export const execute = () => {
-    console.error();
+export const execute = (err: Error, shardId: number) => {
+    console.error(err);
 }
