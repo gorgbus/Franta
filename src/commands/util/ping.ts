@@ -1,14 +1,15 @@
 import { ApplicationCommandStructure, CommandInteraction } from "eris";
 import { EClient } from "../../types";
 
-export const command: ApplicationCommandStructure = {
-    name: 'ping',
-    description: 'ukáže ping bota',
-    type: 1
-}
+export default {
+    command:  {
+        name: 'ping',
+        description: 'ukáže ping bota',
+        type: 1
+    } as ApplicationCommandStructure,
+    execute: (client: EClient, interaction: CommandInteraction) => {
+        const ping = client.guilds.get(interaction.guildID!)?.shard.latency;
 
-export const execute = (client: EClient, interaction: CommandInteraction) => {
-    const ping = client.guilds.get(interaction.guildID!)?.shard.latency;
-
-    interaction.createMessage(`**Shard**: ${ping}ms`);
+        interaction.createMessage(`**Shard**: ${ping}ms`);
+    }
 }

@@ -1,5 +1,7 @@
 import { EClient } from "../../types"
-import { updateCommands } from "../../util";
+import { updateCommands, updateGuildCommands } from "../../util";
+import { config } from "dotenv";
+config();
 
 export const event = {
     once: true,
@@ -10,5 +12,8 @@ export const execute = (client: EClient) => {
     console.log(`${client.user.username} has logged in!`);
     client.manager.init(client.user.id);
 
-    updateCommands(client);
+    if (process.env.PROD === 'dev')
+        updateGuildCommands(client);
+    else
+        updateCommands(client);
 }

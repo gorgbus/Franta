@@ -13,7 +13,9 @@ export const execute = async (interaction: AnyInteractionGateway, client: EClien
         if (!command) return;
 
         try {
-            await command(client, interaction);
+            if (command.permission && !interaction.member?.permissions.has(command.permission)) return interaction.createMessage({ content: 'nemáš dostatečné oprávnění pro použití tohoto příkazu', flags: 64 })
+
+            await command.execute(client, interaction);
         } catch(err) {
             console.error(err);
 

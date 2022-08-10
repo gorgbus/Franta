@@ -1,8 +1,8 @@
 import { Player } from "erela.js";
-import { ApplicationCommandStructure, CommandInteraction } from "eris";
+import { CommandInteraction } from "eris";
 import fs from 'fs';
 import path from 'path';
-import { commandCallback, EClient } from "./types";
+import { command, EClient } from "./types";
 
 export const formatTime = (s: number) => {
     let seconds = Math.floor(s / 1000) % 60,
@@ -81,20 +81,7 @@ const getCommandFiles = () => {
     return commandFiles;
 }
 
-export const updateGuildCommands = (client: EClient, guild: string) => {
-    const commandsPath = path.join(__dirname, 'commands');
-    const commandFiles = getCommandFiles();
-
-    commandFiles.map(async (file) => {
-        const filePath = path.join(commandsPath, file);
-        const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
-
-        client.commands.set(command.name, execute);
-        client.createGuildCommand(guild, command);
-    });
-}
-
-export const updateCommands = (client: EClient) => {
+export const updateGuildCommands = (client: EClient) => {
     const commandsPath = path.join(__dirname, 'commands');
     const commandFiles = getCommandFiles();
 
@@ -108,9 +95,9 @@ export const updateCommands = (client: EClient) => {
             file = commandFiles[file];
 
             const filePath = path.join(commandsPath, file);
-            const { command, execute }: { command: ApplicationCommandStructure; execute: commandCallback } = await import(filePath);
+            const { default: { command, execute, permission } }: command = await import(filePath);
 
-            client.commands.set(command.name, execute);
+            client.commands.set(command.name, { execute, permission });
             const savedCommand = commands.find(cmd => cmd.name === command.name);
 
             if (savedCommand) {
@@ -128,4 +115,36 @@ export const updateCommands = (client: EClient) => {
             client.deleteGuildCommand(guild.id, command.id);
         });
     })
+}
+
+export const updateCommands = async (client: EClient) => {
+    const commandsPath = path.join(__dirname, 'commands');
+    const commandFiles = getCommandFiles();
+
+    client.commands = new Map();
+
+    const commands = await client.getCommands();
+    const comandIds: string[] = [];
+
+    for (let file in commandFiles) {
+        file = commandFiles[file];
+
+        const filePath = path.join(commandsPath, file);
+        const { default: { command, execute, permission } }: command = await import(filePath);
+
+        client.commands.set(command.name, { execute, permission });
+        const savedCommand = commands.find(cmd => cmd.name === command.name);
+
+        if (savedCommand) {
+            const updatedCmd = await client.editCommand(savedCommand.id, command);
+            
+            comandIds.push(updatedCmd.id);
+        } else {
+            const newCmd = await client.createCommand(command);
+            comandIds.push(newCmd.id);
+        }
+    }
+    commands.filter(command => !comandIds.includes(command.id)).map(command => {
+        client.deleteCommand(command.id);
+    });
 }
