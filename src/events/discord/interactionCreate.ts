@@ -13,6 +13,8 @@ export const execute = async (interaction: AnyInteractionGateway, client: EClien
         if (!command) return;
 
         try {
+            if (!interaction.guildID) return interaction.createMessage({ content: 'Tento příkaz nefunguje v DM', flags: 64 });
+
             if (command.permission && !interaction.member?.permissions.has(command.permission)) return interaction.createMessage({ content: 'nemáš dostatečné oprávnění pro použití tohoto příkazu', flags: 64 })
 
             await command.execute(client, interaction);
