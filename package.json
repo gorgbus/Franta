@@ -19,7 +19,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "erela.js": "^2.3.3",
-    "eris": "DonovanDMC/eris#interactions-rewrite"
+    "eris": "DonovanDMC/eris#ed41313d9df5ff7c31bc955e0888f9c6f732c963",
+    "kazagumo": "^2.3.0"
   }
 }

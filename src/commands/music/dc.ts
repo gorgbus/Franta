@@ -4,8 +4,14 @@ import { checkPlayer, checkPlayerAndVoice } from "../../util";
 
 export default {
     command: {
-        name: 'dc',
-        description: 'odpojí bota z roomky',
+        name: "dc",
+        nameLocalizations: {
+            cs: "odpojit"
+        },
+        description: "disconnect the player",
+        descriptionLocalizations: {
+            cs: "odpojí bota z roomky"
+        },
         type: 1
     } as ApplicationCommandStructure,
     execute: async (client: EClient, interaction: CommandInteraction) => {
@@ -15,6 +21,6 @@ export default {
 
         player.destroy();
 
-        interaction.createMessage('posrar sesm se');
+        interaction.createMessage("posrar sesm se");
     }
 }

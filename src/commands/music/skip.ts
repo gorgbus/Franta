@@ -4,8 +4,14 @@ import { checkPlayerAndVoice } from "../../util";
 
 export default {
     command: {
-        name: 'skip',
-        description: 'přeskočí to co teď hraje',
+        name: "skip",
+        nameLocalizations: {
+            cs: "přeskočit"
+        },
+        description: "skip current track",
+        descriptionLocalizations: {
+            cs: "přeskočí to co teď hraje"
+        },
         type: 1
     } as ApplicationCommandStructure,
     execute: async (client: EClient, interaction: CommandInteraction) => {
@@ -13,19 +19,19 @@ export default {
         
         if (!player) return;
 
-        if (!player.queue.current) return interaction.createMessage({ content: 'není co přeskočit', flags: 64 });
+        if (!player.queue.current) return interaction.createMessage({ content: "není co přeskočit", flags: 64 });
 
         const song = player.queue.current;
 
         const embed: Embed = {
-            type: 'skip',
+            type: "skip",
             description: `**[${song?.title}](${song?.uri})**\n bylo přeskočeno`,
             thumbnail: {
                 url: song.thumbnail!
             }
         }
 
-        player.stop();
+        player.skip();
 
         interaction.createMessage({ embeds: [embed] });
     }

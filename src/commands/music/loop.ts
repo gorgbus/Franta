@@ -4,33 +4,42 @@ import { checkPlayerAndVoice } from "../../util";
 
 export default {
     command: {
-        name: 'loop',
-        description: 'loopne song, který teď hraje nebo celou frontu',
-        type: 1,
+        name: "loop",
+        nameLocalizations: {
+            cs: "opakování"
+        },
+        description: "loopne song, který teď hraje nebo celou frontu",
+        type: 3,
         options: [
             {
-                name: 'song',
-                description: 'loopne song, který teď hraje',
-                type: 1,
-                options: [
+                name: "type",
+                name_localizations: {
+                    cs: "typ"
+                },
+                description: "loopne song, který teď hraje",
+                type: 3,
+                required: true,
+                choices: [
                     {
-                        name: 'looped',
-                        description: 'vypni/zapni loop',
-                        required: true,
-                        type: 5
-                    }
-                ]
-            },
-            {
-                name: 'queue',
-                description: 'loopne celou frontu',
-                type: 1,
-                options: [
+                        name: "queue",
+                        name_localizations: {
+                            cs: "fronta"
+                        },
+                        value: "queue"
+                    },
                     {
-                        name: 'looped',
-                        description: 'vypni/zapni loop',
-                        required: true,
-                        type: 5
+                        name: "track",
+                        name_localizations: {
+                            cs: "song"
+                        },
+                        value: "track"
+                    },
+                    {
+                        name: "none",
+                        name_localizations: {
+                            cs: "zrušit"
+                        },
+                        value: "none"
                     }
                 ]
             }
@@ -43,18 +52,15 @@ export default {
 
         const command = interaction.data.options as subcommand[];
 
-        if (!command) throw new Error('něco se nepovedlo');
+        if (!command) throw new Error("něco se nepovedlo");
 
-        const loop = command[0].options[0].value as boolean;
+        const loop = interaction.data.options?.find(str => str.name === "type" && str.type === 3)?.value as "queue" | "track" | "none" | undefined;
 
-        if (command[0].name === 'song')
-            player.setTrackRepeat(loop);
-        else
-            player.setQueueRepeat(loop);
+        player.setLoop(loop);
 
         if (loop)
-            interaction.createMessage(`${command[0].name === 'song' ? player.queue.current?.title: 'celá fronta'} se teď přehrává dokola`);
+            interaction.createMessage(`${command[0].name === "song" ? player.queue.current?.title: "celá fronta"} se teď přehrává dokola`);
         else
-            interaction.createMessage('loop byl zrušen');
+            interaction.createMessage("loop byl zrušen");
     }
 }

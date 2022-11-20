@@ -1,10 +1,13 @@
-import { Player } from "erela.js";
+// import { Player } from "erela.js";
 import { CommandInteraction } from "eris";
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 import { command, EClient } from "./types";
+import { KazagumoPlayer } from "kazagumo";
 
-export const formatTime = (s: number) => {
+export const formatTime = (s?: number) => {
+    if (!s) return "00:00"
+
     let seconds = Math.floor(s / 1000) % 60,
         minutes = Math.floor(s / (1000 * 60)) % 60,
         hours = Math.floor(s / (1000 * 60 * 60)) % 24;
@@ -24,7 +27,7 @@ export const checkPlayer = (intercation: CommandInteraction, client: EClient) =>
     const player = client.manager.players.get(intercation.guildID!);
     
     if (!player) {
-        intercation.createMessage({ content: 'nic nehraje', flags: 64 });
+        intercation.createMessage({ content: "nic nehraje", flags: 64 });
 
         return false;
     }
@@ -32,17 +35,17 @@ export const checkPlayer = (intercation: CommandInteraction, client: EClient) =>
     return player;
 }
 
-export const checkVoice = (interaction: CommandInteraction, player: Player, play: boolean) => {
+export const checkVoice = (interaction: CommandInteraction, player: KazagumoPlayer, play: boolean) => {
     if (!interaction.member?.voiceState.channelID) {
-        interaction.createMessage({ content: 'musíš být v roomce', flags: 64 });
+        interaction.createMessage({ content: "musíš být v roomce", flags: 64 });
         
         return false;
     }
 
     if (play) return true;
 
-    if (interaction.member.voiceState.channelID !== player.voiceChannel) {
-        interaction.createMessage({ content: 'musíš být ve stejné roomce', flags: 64 });
+    if (interaction.member.voiceState.channelID !== player.voiceId) {
+        interaction.createMessage({ content: "musíš být ve stejné roomce", flags: 64 });
 
         return false;
     }
@@ -63,10 +66,10 @@ export const checkPlayerAndVoice = (intercation: CommandInteraction, client: ECl
 }
 
 const getCommandFiles = () => {
-    const commandsPath = path.join(__dirname, 'commands');
+    const commandsPath = path.join(__dirname, "commands");
     const allFiles = fs.readdirSync(commandsPath);
 
-    let commandFiles = allFiles.filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+    let commandFiles = allFiles.filter(file => file.endsWith(".ts") || file.endsWith(".js"));
     const commandDirs = allFiles.filter(file => fs.statSync(path.join(commandsPath, file)).isDirectory());
 
     for (let commandDir in commandDirs) {
@@ -74,7 +77,7 @@ const getCommandFiles = () => {
 
         const commandDirPath = path.join(commandsPath, commandDir);
 
-        const commands = fs.readdirSync(commandDirPath).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+        const commands = fs.readdirSync(commandDirPath).filter(file => file.endsWith(".ts") || file.endsWith(".js"));
         commandFiles = [...commandFiles, ...commands.map(command => `${commandDir}/${command}`)];
     }
 
@@ -82,7 +85,7 @@ const getCommandFiles = () => {
 }
 
 export const updateGuildCommands = (client: EClient) => {
-    const commandsPath = path.join(__dirname, 'commands');
+    const commandsPath = path.join(__dirname, "commands");
     const commandFiles = getCommandFiles();
 
     client.commands = new Map();
@@ -118,7 +121,7 @@ export const updateGuildCommands = (client: EClient) => {
 }
 
 export const updateCommands = async (client: EClient) => {
-    const commandsPath = path.join(__dirname, 'commands');
+    const commandsPath = path.join(__dirname, "commands");
     const commandFiles = getCommandFiles();
 
     client.commands = new Map();

@@ -4,13 +4,25 @@ import { checkPlayerAndVoice } from "../../util";
 
 export default {
     command: {
-        name: 'pause',
-        description: 'pozastaví bota',
+        name: "pause",
+        nameLocalizations: {
+            cs: "pauza"
+        },
+        description: "pause player",
+        descriptionLocalizations: {
+            cs: "pozastzaví bota"
+        },
         type: 1,
         options: [
             {
-                name: 'paused',
-                description: 'pozastaví/spustí bota',
+                name: "paused",
+                name_localizations: {
+                    cs: "pozastaven"
+                },
+                description: "pause/resume player",
+                description_localizations: {
+                    cs: "pozastaví/spustí bota"
+                },
                 required: true,
                 type: 5
             }
@@ -23,12 +35,12 @@ export default {
 
         const options = interaction.data.options;
 
-        if (!options) throw new Error('něco se nepovedlo');
+        if (!options) throw new Error("něco se nepovedlo");
 
         const paused = options[0].value as boolean;
 
         player.pause(paused);
 
-        interaction.createMessage(`<@${client.user.id}> byl ${paused ? 'pozastaven' : 'znovu spuštěn'}`);
+        interaction.createMessage(`<@${client.user.id}> byl ${paused ? "pozastaven" : "znovu spuštěn"}`);
     }
 }

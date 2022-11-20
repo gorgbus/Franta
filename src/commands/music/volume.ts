@@ -4,13 +4,25 @@ import { checkPlayerAndVoice } from "../../util";
 
 export default {
     command: {
-        name: 'volume',
-        description: 'nastavní hlasitost bota',
+        name: "volume",
+        nameLocalizations: {
+            cs: "hlasitost"
+        },
+        description: "set player's volume",
+        descriptionLocalizations: {
+            cs: "nastavní hlasitost bota"
+        },
         type: 1,
         options: [
             {
-                name: 'percents',
-                description: 'hlasitost',
+                name: "percents",
+                name_localizations: {
+                    cs: "procenta"
+                },
+                description: "volume in %",
+                description_localizations: {
+                    cs: "hlasitost v %"
+                },
                 required: true,
                 min_value: 0,
                 type: 4
@@ -24,7 +36,7 @@ export default {
 
         const options = interaction.data.options;
 
-        if (!options) throw new Error('něco se nepovedlo');
+        if (!options) throw new Error("něco se nepovedlo");
     
         const volume = options[0].value as number;
 

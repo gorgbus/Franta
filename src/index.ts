@@ -1,36 +1,34 @@
-import Eris from "eris";
+import { Client } from "eris";
 import discordEvent from "./handlers/discordEvent";
-import { Manager } from "erela.js";
 import { config } from "dotenv";
 import { EClient } from "./types";
-import erelaEvent from "./handlers/erelaEvent";
+import managerEvent from "./handlers/managerEvent";
+import { Connectors } from "shoukaku";
+import { Kazagumo, Plugins } from "kazagumo";
 config();
 
-const client = new Eris.Client(process.env.TOKEN!, {
+const client = new Client(process.env.TOKEN!, {
     intents: 33427,
 }) as EClient;
 
-client.manager = new Manager({
-    nodes: [
-        {
-            host: process.env.LAVA_IP!,
-            port: 6900,
-            password: process.env.LAVALINK
-        }
-    ],
-    send(id, paylod) {
-        const guild = client.guilds.get(id);
+client.manager = new Kazagumo({
+    defaultSearchEngine: "youtube",
+    send: (guildId, payload) => {
+        const guild = client.guilds.get(guildId);
 
-        if (guild) guild.shard.sendWS(paylod.op, paylod.d);
-    }
+        if (guild) guild.shard.sendWS(payload.op, payload.d);        
+    },
+    plugins: [new Plugins.PlayerMoved(client)]
+}, new Connectors.Eris(client), [{
+    url: `${process.env.LAVA_IP}:${process.env.LAVA_PORT}`,
+    name: process.env.LAVA_IP!,
+    auth: process.env.LAVALINK!
+}], {
+    moveOnDisconnect: true,
 });
 
 discordEvent(client);
-erelaEvent(client.manager, client);
-
-client.on('rawWS', (packet: any) => {
-    client.manager.updateVoiceState(packet);
-});
+managerEvent(client.manager, client);
 
 client.connect();
 

@@ -3,32 +3,47 @@ import { EClient } from "../../types";
 
 export default {
     command: {
-        name: 'clear',
-        description: 'vymaže určitý počet zpráv',
+        name: "clear",
+        nameLocalizations: {
+            cs: "vymazat"
+        },
+        description: "deletes number of specified messages",
         descriptionLocalizations: {
-            'en-US': 'deletes number of specified messages',
+            cs: "vymaže určitý počet zpráv",
         },
         type: 1,
         options: [
             {
-                name: 'amount',
-                description: 'počet zpráv',
+                name: "amount",
+                name_localizations: {
+                    cs: "počet"
+                },
+                description: "number of messages to be deleted",
+                description_localizations: {
+                    cs: "počet zpráv, které se vymažou"
+                },
                 required: true,
                 max_value: 100,
                 min_value: 1,
                 type: 4
             },
             {
-                name: 'user',
-                description: 'vymaže zprávy pouze od určeného uživatele',
+                name: "user",
+                name_localizations: {
+                    cs: "uživatel"
+                },
+                description: "deletes messages only from specified user",
+                description_localizations: {
+                    cs: "vymaže zprávy pouze od vybraného uživatele"
+                },
                 type: 6
             }
         ]
     } as ApplicationCommandStructure,
     permission: BigInt(0x2000),
     execute: async (client: EClient, interaction: CommandInteraction) => {
-        const amount = interaction.data.options?.find(opt => opt.name === 'amount')?.value as number;
-        const user = interaction.data.options?.find(opt => opt.name === 'user')?.value;
+        const amount = interaction.data.options?.find(opt => opt.name === "amount")?.value as number;
+        const user = interaction.data.options?.find(opt => opt.name === "user")?.value;
 
         const channel = interaction.channel;
 
@@ -52,7 +67,7 @@ export default {
             });
         }
 
-        client.deleteMessages(channel.id, toBeDeleted, 'clear command');
+        client.deleteMessages(channel.id, toBeDeleted, "clear command");
         interaction.createMessage({ content: `vymazáno \`${toBeDeleted.length}\` zpráv`, flags: 64 });
     }
 }

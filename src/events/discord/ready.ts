@@ -5,14 +5,14 @@ config();
 
 export const event = {
     once: true,
-    name: 'ready'
+    name: "ready"
 }
 
 export const execute = (client: EClient) => {
     console.log(`${client.user.username} has logged in!`);
-    client.manager.init(client.user.id);
+    // client.manager.init(client.user.id);
 
-    if (process.env.PROD === 'dev')
+    if (process.env.PROD === "dev")
         updateGuildCommands(client);
     else
         updateCommands(client);

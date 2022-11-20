@@ -4,22 +4,28 @@ import { checkVoice } from "../../util";
 
 export default {
     command: {
-        name: 'join',
-        description: 'připojí bota do roomky',
+        name: "join",
+        nameLocalizations: {
+            cs: "připojit"
+        },
+        description: "joins the room",
+        descriptionLocalizations: {
+            cs: "připojí bota do roomky"
+        },
         type: 1
     } as ApplicationCommandStructure,
     execute: async (client: EClient, interaction: CommandInteraction) => {
         const player = client.manager.players.get(interaction.guildID!);
 
-        if (player) return interaction.createMessage({ content: `<@${client.user.id}> už je připojený v <#${player.voiceChannel}>`, flags: 64 })
+        if (player) return interaction.createMessage({ content: `<@${client.user.id}> už je připojený v <#${player.voiceId}>`, flags: 64 })
 
         if (!checkVoice(interaction, player!, true)) return;
 
-        client.manager.create({
-            guild: interaction.guildID!,
-            voiceChannel: interaction.member?.voiceState.channelID!,
-            textChannel: interaction.channel.id,
-        }).connect();
+        const newPlayer = await client.manager.createPlayer({
+            guildId: interaction.guildID!,
+            voiceId: interaction.member?.voiceState.channelID!,
+            textId: interaction.channel.id,
+        });
 
         interaction.createMessage(`připojeno do <#${interaction.member?.voiceState.channelID}>`)
     }

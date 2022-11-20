@@ -3,8 +3,11 @@ import { EClient } from "../../types";
 
 export default {
     command:  {
-        name: 'ping',
-        description: 'ukáže ping bota',
+        name: "ping",
+        description: "shows bot's latency",
+        descriptionLocalizations: {
+            cs: "ukáže ping bota"
+        },
         type: 1
     } as ApplicationCommandStructure,
     execute: (client: EClient, interaction: CommandInteraction) => {

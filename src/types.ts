@@ -1,10 +1,10 @@
-import { Manager } from "erela.js";
 import { ApplicationCommandStructure, Client, CommandInteraction, InteractionDataOptions } from "eris";
+import { Kazagumo } from "kazagumo/dist/Kazagumo";
 
 export type commandCallback = (client: EClient, interaction: CommandInteraction) => Promise<void>;
 
 export interface EClient extends Client {
-    manager: Manager;
+    manager: Kazagumo;
     commands: Map<string, { permission?: bigint; execute: commandCallback }>;
 }
 
